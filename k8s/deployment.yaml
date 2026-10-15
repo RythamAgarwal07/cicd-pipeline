@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cca2-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cca2-web
+  template:
+    metadata:
+      labels:
+        app: cca2-web
+    spec:
+      containers:
+        - name: web
+          image: YOUR_DOCKERHUB_USERNAME/cca2-cicd-demo:latest
+          ports:
+            - containerPort: 80
