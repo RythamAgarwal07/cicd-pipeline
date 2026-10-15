@@ -1,0 +1,83 @@
+
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_REPO = 'rythamagarwal/cca2-cicd-demo'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                sh '''
+                    test -f index.html
+                    grep -q "My First CI/CD Project" index.html
+                    echo "Basic application checks passed"
+                '''
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build \
+                      -t $DOCKERHUB_REPO:$BUILD_NUMBER \
+                      -t $DOCKERHUB_REPO:latest .
+                '''
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" |
+                          docker login -u "$DOCKERHUB_USERNAME" \
+                          --password-stdin
+
+                        docker push $DOCKERHUB_REPO:$BUILD_NUMBER
+                        docker push $DOCKERHUB_REPO:latest
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                sh '''
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+
+                    kubectl set image deployment/cca2-web \
+                      web=$DOCKERHUB_REPO:$BUILD_NUMBER
+
+                    kubectl rollout status deployment/cca2-web \
+                      --timeout=120s
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    kubectl get deployment cca2-web
+                    kubectl get pods
+                    kubectl get service cca2-web-service
+                '''
+            }
+        }
+    }
+}
