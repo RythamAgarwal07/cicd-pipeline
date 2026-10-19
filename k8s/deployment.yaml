@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: web
-          image: rythamagarwal/cca2-cicd-demo:latest
+          image: rythamagarwal/cicd-pipeline:latest
           ports:
             - containerPort: 80
