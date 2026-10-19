@@ -1,10 +1,9 @@
 
-
 pipeline {
     agent any
 
     environment {
-        DOCKERHUB_REPO = 'rythamagarwal/cca2-cicd-demo'
+        DOCKERHUB_REPO = 'rythamagarwal/cicd-pipeline'
     }
 
     stages {
