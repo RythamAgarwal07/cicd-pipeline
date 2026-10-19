@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         DOCKERHUB_REPO = 'rythamagarwal/cicd-pipeline'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
